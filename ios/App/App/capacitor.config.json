@@ -1,0 +1,6 @@
+{
+	"appId": "io.ionic.starter",
+	"appName": "download",
+	"webDir": "www",
+	"bundledWebRuntime": false
+}
