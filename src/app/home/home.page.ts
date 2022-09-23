@@ -1,14 +1,13 @@
 import { Component } from '@angular/core';
-import {
-  Filesystem,
-  FilesystemDirectory,
-  FilesystemEncoding,
-} from '@capacitor/filesystem';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Storage } from '@capacitor/storage';
 import { FileOpener } from '@awesome-cordova-plugins/file-opener/ngx';
 import { HttpClient, HttpEventType } from '@angular/common/http';
+import { Platform, LoadingController } from '@ionic/angular';
+import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
+import { Media, } from '@capacitor-community/media';
 
-export const FILE_KEY = 'files';
+const IMAGE_DIR = 'stored-images';
 
 @Component({
   selector: 'app-home',
@@ -18,9 +17,11 @@ export const FILE_KEY = 'files';
 export class HomePage {
   myFiles = [];
   downloadProgress = 0;
+  private album = null;
 
-  constructor(private fileOpener: FileOpener, private http: HttpClient) {
-    this.loadFiles();
+  constructor(private platform: Platform, private fileOpener: FileOpener, 
+    private http: HttpClient) {
+    this.album = this.platform.is('ios') ? 'album.identifier' : 'album.name';
   }
 
   private convertBlobToBase64 = (blob: Blob) =>
@@ -41,71 +42,37 @@ export class HomePage {
     } else if (name.indexOf('mp4')) {
       return 'video/mp4';
     }
-  }
-
-  async loadFiles() {
-    const videoList = await Storage.get({ key: FILE_KEY });
-    this.myFiles = JSON.parse(videoList.value) || [];
-  }
-
-  // downloadFile() {
-  //   const imgUrl =
-  //     'https://file-examples.com/storage/fe8706f33862a362898ceed/2017/10/file-sample_150kB.pdf';
-  //   this.http
-  //     .get(imgUrl, {
-  //       responseType: 'blob',
-  //       reportProgress: true,
-  //       observe: 'events',
-  //     })
-  //     .subscribe(async (event) => {
-  //       if (event.type === HttpEventType.DownloadProgress) {
-  //         this.downloadProgress = Math.round(
-  //           (100 * event.loaded) / event.total
-  //         );
-  //       } else if (event.type === HttpEventType.Response) {
-  //         this.downloadProgress = 0;
-
-  //         const name = imgUrl.substr(imgUrl.lastIndexOf('/') + 1);
-  //         const base64 = (await this.convertBlobToBase64(event.body)) as string;
-
-  //         const savedFile = await Filesystem.writeFile({
-  //           path: name,
-  //           data: base64,
-  //           directory: Directory.Documents,
-  //         });
-
-  //         const path = savedFile.uri;
-  //         const mimeType = this.getMimetype(name);
-
-  //         this.fileOpener
-  //           .open(path, mimeType)
-  //           .then(() => console.log('File is opened', path))
-  //           .catch((error) => console.log('Error opening file', error));
-
-  //         this.myFiles.unshift(path);
-
-  //         Storage.set({
-  //           key: FILE_KEY,
-  //           value: JSON.stringify(this.myFiles),
-  //         });
-  //       }
-  //     });
-  // }
+  }  
 
   async downloadFile() {
-    const url =
-      'https://file-examples.com/storage/fe651bd80a632c9aa9a0f1d/2017/10/file_example_JPG_100kB.jpg';
-    const fileName = url.split('/').pop();
-    try {
-      const result = await Filesystem.writeFile({
-        path: fileName,
-        data: url,
-        directory: FilesystemDirectory.Data,
-        encoding: FilesystemEncoding.UTF8,
-      });
-      console.log('file Downloaded', result);
-    } catch (e) {
-      console.error('Unable to write file', e);
-    }
+    const urlPhoto = new URL('https://tesla-cdn.thron.com/delivery/public/image/tesla/03e533bf-8b1d-463f-9813-9a597aafb280/bvlatuR/std/4096x2560/M3-Homepage-Desktop-LHD.jpg');
+    this.saveImage2(urlPhoto);
+  }
+
+  async saveImage(photo: URL) {
+    const base64Data = await this.readAsBase64(photo);
+    console.log(base64Data);
+    const fileName = new Date().getTime() + '.jpeg';
+    await Filesystem.writeFile({
+      directory: Directory.Library,
+      path: fileName,
+      data: base64Data
+    });
+  }
+
+  async saveImage2(photo: URL) {
+    const fileName = new Date().getTime() + '.jpeg';
+    const album = this.platform.is('ios') ? this.album.identifier : this.album.name;
+    const savePhotoResult = await Media.savePhoto({
+      path: 'https://tesla-cdn.thron.com/delivery/public/image/tesla/03e533bf-8b1d-463f-9813-9a597aafb280/bvlatuR/std/4096x2560/M3-Homepage-Desktop-LHD.jpg',
+      album: album 
+    });
+  }
+
+  async readAsBase64(photo: URL) {
+      const response = await fetch(photo);
+      const blob = await response.blob();
+      return await this.convertBlobToBase64(blob) as string;
+    
   }
 }

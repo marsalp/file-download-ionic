@@ -45,5 +45,16 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+<string>Our app is for School purpose, it requires teachers to upload photos to
+  report some kind of activities for the students, these activities could be an
+  Event or an Homework. Also, when the parent signs up in the app, he/shee needs
+  to pick up a photo for the student profile.</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string
+  >Our app is for School purpose, it requires teachers to upload photos to
+  report some kind of activities for the students, these activities could be an
+  Event or an Homework. Also, when the parent signs up in the app, he/shee needs
+  to pick up a photo for the student profile.</string>
 </dict>
 </plist>
