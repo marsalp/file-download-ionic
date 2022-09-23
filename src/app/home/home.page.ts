@@ -17,11 +17,11 @@ const IMAGE_DIR = 'stored-images';
 export class HomePage {
   myFiles = [];
   downloadProgress = 0;
-  private album = null;
+  private album: any = {}
 
   constructor(private platform: Platform, private fileOpener: FileOpener, 
     private http: HttpClient) {
-    this.album = this.platform.is('ios') ? 'album.identifier' : 'album.name';
+    
   }
 
   private convertBlobToBase64 = (blob: Blob) =>
@@ -32,24 +32,14 @@ export class HomePage {
         resolve(reader.result);
       };
       reader.readAsDataURL(blob);
-    });
-
-  private getMimetype(name) {
-    if (name.indexOf('pdf') >= 0) {
-      return 'application/pdf';
-    } else if (name.indexOf('jpeg')) {
-      return 'image/jpeg';
-    } else if (name.indexOf('mp4')) {
-      return 'video/mp4';
-    }
-  }  
+    }); 
 
   async downloadFile() {
-    const urlPhoto = new URL('https://tesla-cdn.thron.com/delivery/public/image/tesla/03e533bf-8b1d-463f-9813-9a597aafb280/bvlatuR/std/4096x2560/M3-Homepage-Desktop-LHD.jpg');
-    this.saveImage2(urlPhoto);
+    const photoUrl = new URL('https://tesla-cdn.thron.com/delivery/public/image/tesla/03e533bf-8b1d-463f-9813-9a597aafb280/bvlatuR/std/4096x2560/M3-Homepage-Desktop-LHD.jpg');
+    this.saveImageWithCapacitorCommunityMedia(photoUrl.toString());
   }
 
-  async saveImage(photo: URL) {
+  async saveImageWithCapacitorFileSystem(photo: URL) {
     const base64Data = await this.readAsBase64(photo);
     console.log(base64Data);
     const fileName = new Date().getTime() + '.jpeg';
@@ -60,11 +50,11 @@ export class HomePage {
     });
   }
 
-  async saveImage2(photo: URL) {
+  async saveImageWithCapacitorCommunityMedia(photoUrl:string) {
     const fileName = new Date().getTime() + '.jpeg';
     const album = this.platform.is('ios') ? this.album.identifier : this.album.name;
     const savePhotoResult = await Media.savePhoto({
-      path: 'https://tesla-cdn.thron.com/delivery/public/image/tesla/03e533bf-8b1d-463f-9813-9a597aafb280/bvlatuR/std/4096x2560/M3-Homepage-Desktop-LHD.jpg',
+      path: photoUrl,
       album: album 
     });
   }
